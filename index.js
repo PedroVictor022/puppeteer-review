@@ -1,7 +1,11 @@
 const puppeteer = require("puppeteer");
 
 (async () => {
+  const _teamName = [];
+  const _teamInfo = [];
   const _lastMatches = [];
+  const _nextMatches = [];
+
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -18,18 +22,41 @@ const puppeteer = require("puppeteer");
 
   // Collect all info of website
   for (const infos of teamInfo) {
-    const allInfos = await page.evaluate((el) => el.innerText, infos); // Return content this website
+    // Return content this website
+    try {
+      const allInfos = await page.evaluate((el) => el.innerText, infos);
+      _teamInfo.push(allInfos);
+    } catch (err) {
+      return err;
+    }
 
     // Return especific info
-    const nomeTime = await page.evaluate(
-      (el) => el.querySelector("h2 > span").textContent,
-      infos
-    );
+    try {
+      const nomeTime = await page.evaluate(
+        (el) => el.querySelector("h2 > span").textContent,
+        infos
+      );
+      _teamName.push(nomeTime);
+    } catch (err) {
+      return err;
+    }
 
-    const nextOpp = await page.evaluate(
-      (el) => el.querySelector("div:nth-child(6) > a:nth-child(3)").textContent,
-      infos
-    );
+    const nextOps = await page.$$("#team-info > div.col-md-8.col-lg-9.col-sm-12 > div.panel.panel-default > div > div > div.row > div:nth-child(3) > div > div.panel-body.pn > div")
+    for (const nxOps of nextOps) {
+      const n = await page.evaluate((el) => el.innerText, nxOps);
+      _nextMatches.push(n);
+    }
+
+    // try {
+    //   const nextOpp = await page.evaluate(
+    //     (el) =>
+    //       el.querySelector("div > div.panel-body.pn > div").textContent,
+    //     infos
+    //   );
+    //   _nextMatches.push(nextOpp);
+    // } catch (err) {
+    //   return err;
+    // }
 
     const lastMatchs = await page.$$(
       "div > div.panel-body.pn.box_last_matches.small_box_h2h"
@@ -37,16 +64,17 @@ const puppeteer = require("puppeteer");
 
     for (const sevenLast of lastMatchs) {
       const matches = await page.evaluate((el) => el.innerText, sevenLast);
-      // _lastMatches.push(matches);
+      _lastMatches.push(matches);
     }
 
     // Data games
-    const datas = await page.$$("div.status > div.date.date_unix.date_unix_edit.tooltip_setup");
+    const datas = await page.$$(
+      "div.status > div.date.date_unix.date_unix_edit.tooltip_setup"
+    );
     for (const allDatas of datas) {
       const data = await page.evaluate((el) => el.innerText, allDatas);
       _lastMatches.push(data);
-    };
-
+    }
 
     // console.log(datas);
 
@@ -61,7 +89,7 @@ const puppeteer = require("puppeteer");
     //   -----------------
     //   Last matches: ${_lastMatches}
     // `);
-    console.log(_lastMatches);
+    console.log(`${_lastMatches} - PROXIMAS PARTIDAS ${_nextMatches}`);
   }
 
   await browser.close();
