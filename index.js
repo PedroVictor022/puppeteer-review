@@ -6,7 +6,6 @@ const puppeteer = require("puppeteer");
   const _lastMatches = [];
   const _nextMatches = [];
 
-
   const browser = await puppeteer.launch({
     headless: true,
     defaultViewport: false,
@@ -41,22 +40,14 @@ const puppeteer = require("puppeteer");
       return err;
     }
 
-    const nextOps = await page.$$("#team-info > div.col-md-8.col-lg-9.col-sm-12 > div.panel.panel-default > div > div > div.row > div:nth-child(3) > div > div.panel-body.pn > div")
+    // GET NEXT OPS
+    const nextOps = await page.$$(
+      "#team-info > div.col-md-8.col-lg-9.col-sm-12 > div.panel.panel-default > div > div > div.row > div:nth-child(3) > div > div.panel-body.pn > div"
+    ); 
     for (const nxOps of nextOps) {
       const n = await page.evaluate((el) => el.innerText, nxOps);
       _nextMatches.push(n);
     }
-
-    // try {
-    //   const nextOpp = await page.evaluate(
-    //     (el) =>
-    //       el.querySelector("div > div.panel-body.pn > div").textContent,
-    //     infos
-    //   );
-    //   _nextMatches.push(nextOpp);
-    // } catch (err) {
-    //   return err;
-    // }
 
     const lastMatchs = await page.$$(
       "div > div.panel-body.pn.box_last_matches.small_box_h2h"
@@ -74,6 +65,13 @@ const puppeteer = require("puppeteer");
     for (const allDatas of datas) {
       const data = await page.evaluate((el) => el.innerText, allDatas);
       _lastMatches.push(data);
+    }
+
+    // Players 
+    const players = await page.$$('.table table-striped .table-bordered .table-hover .stage-table .table-condensed .top_scores > tbody > tr')
+    for(const allPlayers of players) {
+      const tenPlayers = await page.evaluate((el) => el.innerText, allPlayers);
+      _lastMatches.push(tenPlayers)
     }
 
     // console.log(datas);
